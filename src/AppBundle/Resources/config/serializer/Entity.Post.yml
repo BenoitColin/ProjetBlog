@@ -1,0 +1,13 @@
+AppBundle\Entity\Post:
+    exclusion_policy: none
+    properties:
+        id:
+            groups: ['users', 'posts', 'comments']
+        title:
+            groups: ['posts']
+        content:
+            groups: ['posts']
+        createdAt:
+            groups: ['posts']
+        user:
+            groups: ['posts']

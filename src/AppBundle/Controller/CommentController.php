@@ -7,20 +7,19 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use FOS\RestBundle\Controller\Annotations as Rest;
-use AppBundle\Entity\Post;
-use AppBundle\Form\PostType;
+use AppBundle\Entity\Comment;
+use AppBundle\Form\CommentType;
 use Nelmio\ApiDocBundle\Annotation\ApiDoc;
 use FOS\RestBundle\Controller\Annotations\QueryParam;
 
-class PostController extends Controller
+class CommentController extends Controller
 {
-    
     /**
-     * @Rest\View(serializerGroups={"posts"})
-     * @Rest\Get("/posts")
+     * @Rest\View(serializerGroups={"comments"})
+     * @Rest\Get("/comments")
      *
      * @ApiDoc(
-     *    description="Recupère les articles de l'application",
+     *    description="Recupère les commentaires de l'application",
      *    statusCodes = {
      *        201 = "ok",
      *        400 = "Formulaire invalide"
@@ -28,25 +27,25 @@ class PostController extends Controller
      * )
      * 
      */
-    public function getPostAction(Request $request)
+    public function getCommentsAction(Request $request)
     {
-        $post = $this->get('doctrine.orm.entity_manager')
-                ->getRepository('AppBundle:Post')
+        $comment = $this->get('doctrine.orm.entity_manager')
+                ->getRepository('AppBundle:Comment')
                 ->findAll();
 
-        if (empty($post)) {
-            return \FOS\RestBundle\View\View::create(['message' => 'Post not found'], Response::HTTP_NOT_FOUND);
+        if (empty($comment)) {
+            return \FOS\RestBundle\View\View::create(['message' => 'Comment not found'], Response::HTTP_NOT_FOUND);
         }
 
-        return $post;
+        return $comment;
     }
     
     /**
-     * @Rest\View(serializerGroups={"posts"})
-     * @Rest\Get("/users/{id}/posts")
+     * @Rest\View(serializerGroups={"comments"})
+     * @Rest\Get("/users/{id}/comments")
      *
      * @ApiDoc(
-     *    description="Recupère les articles de l'utilisateur",
+     *    description="Recupère les commentaires de l'utilisateur",
      *    statusCodes = {
      *        201 = "ok",
      *        400 = "Formulaire invalide"
@@ -54,7 +53,7 @@ class PostController extends Controller
      * )
      * 
      */
-    public function getPostsAction(Request $request)
+    public function getCommentUserAction(Request $request)
     {
         $user = $this->get('doctrine.orm.entity_manager')
                 ->getRepository('AppBundle:User')
@@ -64,15 +63,15 @@ class PostController extends Controller
             return \FOS\RestBundle\View\View::create(['message' => 'User not found'], Response::HTTP_NOT_FOUND);
         }
 
-        return $user->getPosts();
+        return $user->getComments();
     }
     
     /**
-     * @Rest\View(serializerGroups={"posts"})
-     * @Rest\Get("/users/{id}/posts/{idp}")
+     * @Rest\View(serializerGroups={"comments"})
+     * @Rest\Get("/posts/{id}/comments")
      *
      * @ApiDoc(
-     *    description="Recupère un artcile d'un l'utilisateur",
+     *    description="Recupère les commentaires de l'article",
      *    statusCodes = {
      *        201 = "ok",
      *        400 = "Formulaire invalide"
@@ -80,7 +79,34 @@ class PostController extends Controller
      * )
      * 
      */
-    public function getPostUserAction(Request $request)
+    public function getCommentAction(Request $request)
+    {
+        $post = $this->get('doctrine.orm.entity_manager')
+                ->getRepository('AppBundle:Post')
+                ->find($request->get('id'));
+
+        if (empty($post)) {
+            return \FOS\RestBundle\View\View::create(['message' => 'Post not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        return $post->getComments();
+    }
+    
+    /**
+     * @Rest\View(serializerGroups={"comments"})
+     * @Rest\Post("/users/{id}/posts/{idp}/comments")
+     *
+     * @ApiDoc(
+     *    description="Créé un commentaire dans l'application",
+     *    input={"class"=CommentType::class, "name"=""},
+     *    statusCodes = {
+     *        201 = "ok",
+     *        400 = "Formulaire invalide"
+     *    }
+     * ) 
+     * 
+     */
+    public function postCommentsAction(Request $request)
     {
         $user = $this->get('doctrine.orm.entity_manager')
                 ->getRepository('AppBundle:User')
@@ -93,62 +119,35 @@ class PostController extends Controller
         $post = $this->get('doctrine.orm.entity_manager')
                 ->getRepository('AppBundle:Post')
                 ->find($request->get('idp'));
-        
+
         if (empty($post)) {
             return \FOS\RestBundle\View\View::create(['message' => 'Post not found'], Response::HTTP_NOT_FOUND);
         }
-        
-        return $post;
-    }
-    
-    
-    /**
-     * @Rest\View(serializerGroups={"posts"})
-     * @Rest\Post("/users/{id}/posts")
-     *
-     * @ApiDoc(
-     *    description="Créé un article dans l'application",
-     *    input={"class"=PostType::class, "name"=""},
-     *    statusCodes = {
-     *        201 = "ok",
-     *        400 = "Formulaire invalide"
-     *    }
-     * ) 
-     * 
-     */
-    public function postPostsAction(Request $request)
-    {
-        $user = $this->get('doctrine.orm.entity_manager')
-                ->getRepository('AppBundle:User')
-                ->find($request->get('id'));
 
-        if (empty($user)) {
-            return \FOS\RestBundle\View\View::create(['message' => 'User not found'], Response::HTTP_NOT_FOUND);
-        }
-
-        $post = new Post();
-        $post->setCreatedAt(new \DateTime('now'));
-        $post->setUser($user);
-        $form = $this->createForm(PostType::class, $post);
+        $comment = new Comment();
+        $comment->setCreatedAt(new \DateTime('now'));
+        $comment->setUser($user);
+        $comment->setPosts($post);
+        $form = $this->createForm(CommentType::class, $comment);
 
         $form->submit($request->request->all());
 
         if ($form->isValid()) {
             $em = $this->get('doctrine.orm.entity_manager');
-            $em->persist($post);
+            $em->persist($comment);
             $em->flush();
-            return $post;
+            return $comment;
         } else {
             return $form;
         }
     }
     
     /**
-     * @Rest\View(serializerGroups={"posts"})
-     * @Rest\Delete("/posts/{id}")
+     * @Rest\View(serializerGroups={"comments"})
+     * @Rest\Delete("/comments/{id}")
      *
      * @ApiDoc(
-     *    description="Supprime un article dans l'application",
+     *    description="Supprime un commentaire dans l'application",
      *    statusCodes = {
      *        201 = "ok",
      *        400 = "Formulaire invalide"
@@ -156,33 +155,29 @@ class PostController extends Controller
      * ) 
      * 
      */
-    public function removePostsAction(Request $request)
+    public function removeCommentsAction(Request $request)
     { 
         $em = $this->get('doctrine.orm.entity_manager');
-        $post = $em->getRepository('AppBundle:Post')
+        $comment = $em->getRepository('AppBundle:Comment')
                   ->find($request->get('id'));
 
-        if (!$post) {
-            return \FOS\RestBundle\View\View::create(['message' => 'Post not found'], Response::HTTP_NOT_FOUND);;
+        if (!$comment) {
+            return \FOS\RestBundle\View\View::create(['message' => 'Comment not found'], Response::HTTP_NOT_FOUND);;
         }
         
-        foreach ($post->getComments() as $comment) {
-            $em->remove($comment);
-        }
-        
-        $em->remove($post);
+        $em->remove($comment);
         $em->flush();
         
         return \FOS\RestBundle\View\View::create(['message' => 'Comment deleted'], Response::HTTP_NOT_FOUND);
     }
 
     /**
-     * @Rest\View(serializerGroups={"posts"})
-     * @Rest\Put("/posts/{id}")
+     * @Rest\View(serializerGroups={"comments"})
+     * @Rest\Put("/comments/{id}")
      * 
      * @ApiDoc(
-     *    description="Modifie complétement un article dans l'application",
-     *    input={"class"=PostType::class, "name"=""},
+     *    description="Modifie complétement un commentaire dans l'application",
+     *    input={"class"=CommentType::class, "name"=""},
      *    statusCodes = {
      *        201 = "ok",
      *        400 = "Formulaire invalide"
@@ -190,18 +185,18 @@ class PostController extends Controller
      * )
      * 
      */
-    public function updatePostAction(Request $request)
+    public function updateCommentsAction(Request $request)
     {
-        return $this->updatePost($request, true);
+        return $this->updateComment($request, true);
     }
     
     /**
-     * @Rest\View(serializerGroups={"posts"})
-     * @Rest\Patch("/posts/{id}")
+     * @Rest\View(serializerGroups={"comments"})
+     * @Rest\Patch("/comments/{id}")
      *
      * @ApiDoc(
-     *    description="Modifie partiellement un article dans l'application",
-     *    input={"class"=PostType::class, "name"=""},
+     *    description="Modifie partiellement un commentaire dans l'application",
+     *    input={"class"=CommentType::class, "name"=""},
      *    statusCodes = {
      *        201 = "ok",
      *        400 = "Formulaire invalide"
@@ -209,23 +204,23 @@ class PostController extends Controller
      * )
      * 
      */
-    public function patchPostAction(Request $request)
+    public function patchCommentsAction(Request $request)
     {
-        return $this->updatePost($request, false);
+        return $this->updateComment($request, false);
     }
     
     /**
      * @Rest\View(serializerGroups={"posts"})
      * @Rest\Put("/posts/{id}")
      */
-    public function updatePost(Request $request, $clearMissing)
+    public function updateComment(Request $request, $clearMissing)
     {
-        $post = $this->get('doctrine.orm.entity_manager')
-                ->getRepository('AppBundle:Post')
+        $comment = $this->get('doctrine.orm.entity_manager')
+                ->getRepository('AppBundle:Comment')
                 ->find($request->get('id'));
 
-        if (empty($post)) {
-            return \FOS\RestBundle\View\View::create(['message' => 'Post not found'], Response::HTTP_NOT_FOUND);
+        if (empty($comment)) {
+            return \FOS\RestBundle\View\View::create(['message' => 'Comment not found'], Response::HTTP_NOT_FOUND);
         }
         
         if ($clearMissing) {
@@ -234,17 +229,18 @@ class PostController extends Controller
             $options = [];
         }
 
-        $form = $this->createForm(PostType::class, $post);
+        $form = $this->createForm(CommentType::class, $comment);
 
         $form->submit($request->request->all(), $clearMissing);
 
         if ($form->isValid()) {
             $em = $this->get('doctrine.orm.entity_manager');
-            $em->merge($post);
+            $em->merge($comment);
             $em->flush();
-            return $post;
+            return $comment;
         } else {
             return $form;
         }
     }
+
 }

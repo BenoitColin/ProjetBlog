@@ -16,7 +16,7 @@ use FOS\RestBundle\Controller\Annotations\QueryParam;
 class AuthTokenController extends Controller
 {
     /**
-     * @Rest\View(statusCode=Response::HTTP_CREATED)
+     * @Rest\View(serializerGroups={"auth_tokens"})
      * @Rest\Post("/auth-tokens")
      * 
      * @ApiDoc(
@@ -65,6 +65,36 @@ class AuthTokenController extends Controller
         $em->flush();
         
         return $authToken;
+    }
+
+    /**
+     * @Rest\View(serializerGroups={"auth_tokens"})
+     * @Rest\Delete("/auth-tokens/{id}")
+     * 
+     * @ApiDoc(
+     *    description="Supprime un token dans l'application",
+     *    statusCodes = {
+     *        201 = "ok",
+     *        400 = "Formulaire invalide"
+     *    }
+     * )
+     * 
+     */
+    public function removeAuthTokensAction(Request $request)
+    {
+        $ema = $this->get('doctrine.orm.entity_manager');
+        $token = $ema->getRepository('AppBundle:AuthToken')
+                  ->find($request->get('id'));
+
+        if (!$token) {
+            return \FOS\RestBundle\View\View::create(['message' => 'Token not found'], Response::HTTP_NOT_FOUND);;
+        }
+        
+        $ema->remove($token);
+        $ema->flush();
+        
+        return \FOS\RestBundle\View\View::create(['message' => 'Token deleted'], Response::HTTP_NOT_FOUND);
+        
     }
 
     private function invalidCredentials()

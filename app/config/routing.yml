@@ -8,7 +8,11 @@ users:
     
 posts:
     type:     rest
-    resource: AppBundle\Controller\PostController    
+    resource: AppBundle\Controller\PostController  
+
+comments:
+    type:     rest
+    resource: AppBundle\Controller\CommentController
     
 auth-tokens:
     type:     rest

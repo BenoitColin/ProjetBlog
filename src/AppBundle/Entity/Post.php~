@@ -5,10 +5,12 @@ namespace AppBundle\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * Post
- *
- * @ORM\Table(name="post")
- * @ORM\Entity(repositoryClass="AppBundle\Repository\PostRepository")
+ * Identifiant unique de l'article
+ * 
+ * @ORM\Entity()
+ * @ORM\Table(name="post",
+ *      uniqueConstraints={@ORM\UniqueConstraint(name="post_title_unique",columns={"title"})}
+ * )
  */
 class Post
 {
@@ -47,6 +49,12 @@ class Post
      * @var User
      */
     protected $user;
+    
+    /**
+     * @ORM\OneToMany(targetEntity="Comment", mappedBy="posts")
+     * @var Comment[]
+     */
+    protected $comments;
 
     /**
      * Get id
@@ -152,5 +160,70 @@ class Post
     public function getUser()
     {
         return $this->user;
+    }
+
+    /**
+     * Set comment
+     *
+     * @param \AppBundle\Entity\Comment $comment
+     *
+     * @return Post
+     */
+    public function setComment(\AppBundle\Entity\Comment $comment = null)
+    {
+        $this->comment = $comment;
+
+        return $this;
+    }
+
+    /**
+     * Get comment
+     *
+     * @return \AppBundle\Entity\Comment
+     */
+    public function getComment()
+    {
+        return $this->comment;
+    }
+    /**
+     * Constructor
+     */
+    public function __construct()
+    {
+        $this->comments = new \Doctrine\Common\Collections\ArrayCollection();
+    }
+
+    /**
+     * Add comment
+     *
+     * @param \AppBundle\Entity\Comment $comment
+     *
+     * @return Post
+     */
+    public function addComment(\AppBundle\Entity\Comment $comment)
+    {
+        $this->comments[] = $comment;
+
+        return $this;
+    }
+
+    /**
+     * Remove comment
+     *
+     * @param \AppBundle\Entity\Comment $comment
+     */
+    public function removeComment(\AppBundle\Entity\Comment $comment)
+    {
+        $this->comments->removeElement($comment);
+    }
+
+    /**
+     * Get comments
+     *
+     * @return \Doctrine\Common\Collections\Collection
+     */
+    public function getComments()
+    {
+        return $this->comments;
     }
 }

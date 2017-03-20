@@ -16,7 +16,7 @@ class UserController extends Controller
 {
     
     /**
-     * @Rest\View()
+     * @Rest\View(serializerGroups={"users"})
      * @Rest\Get("/users")
      *
      * @ApiDoc(
@@ -37,7 +37,7 @@ class UserController extends Controller
     }
     
     /**
-     * @Rest\View()
+     * @Rest\View(serializerGroups={"users"})
      * @Rest\Get("/users/{id}")
      * 
      * @ApiDoc(
@@ -62,8 +62,8 @@ class UserController extends Controller
     }
     
     /**
-     * @Rest\View(statusCode=Response::HTTP_CREATED)
-     * @Rest\Post("/usersC")
+     * @Rest\View(serializerGroups={"users"})
+     * @Rest\Post("/users")
      * 
      * @ApiDoc(
      *    description="Créé un utilisateur dans l'application",
@@ -97,11 +97,11 @@ class UserController extends Controller
     }
     
     /**
-     * @Rest\View(statusCode=Response::HTTP_NO_CONTENT)
+     * @Rest\View(serializerGroups={"users"})
      * @Rest\Delete("/users/{id}")
      * 
      * @ApiDoc(
-     *    description="Supprime un utilisateur dans l'application",
+     *    description="Supprime un utilisateur ainsi que ses articles et les commentaires associés dans l'application",
      *    statusCodes = {
      *        201 = "ok",
      *        400 = "Formulaire invalide"
@@ -115,13 +115,29 @@ class UserController extends Controller
                     ->find($request->get('id'));
 
         if (!$user) {
-            return;
+            return \FOS\RestBundle\View\View::create(['message' => 'User not found'], Response::HTTP_NOT_FOUND);
         }
 
         foreach ($user->getPosts() as $post) {
+            foreach ($post->getComments() as $comment) {
+                $em->remove($comment);
+            }
             $em->remove($post);
         }
         
+        foreach ($user->getComments() as $comment) {
+            $em->remove($comment);
+        }
+        
+        $ema = $this->get('doctrine.orm.entity_manager');
+        $auth = $ema->getRepository('AppBundle:AuthToken')
+                    ->findAll();
+        foreach ($auth as $authId) {
+            if($authId->getUser()->getId() === $user->getId()){
+                $em->remove($authId);
+            }
+        }
+
         $em->remove($user);
         $em->flush();
         
@@ -129,7 +145,7 @@ class UserController extends Controller
     }
     
     /**
-     * @Rest\View()
+     * @Rest\View(serializerGroups={"users"})
      * @Rest\Put("/users/{id}")
      * 
      * @ApiDoc(
@@ -147,7 +163,7 @@ class UserController extends Controller
     }
     
     /**
-     * @Rest\View()
+     * @Rest\View(serializerGroups={"users"})
      * @Rest\Patch("/users/{id}")
      * 
      * @ApiDoc(
@@ -165,7 +181,7 @@ class UserController extends Controller
     }
     
     /**
-     * @Rest\View()
+     * @Rest\View(serializerGroups={"users"})
      * @Rest\Put("/users/{id}")
      */
     public function updateUser(Request $request, $clearMissing)
@@ -182,6 +198,10 @@ class UserController extends Controller
             $options = ['validation_groups'=>['Default', 'FullUpdate']];
         } else {
             $options = [];
+        }
+        
+        if(!($this->get('security.context')->getToken()->getUser()->getId()===$user->getId())){
+            return \FOS\RestBundle\View\View::create(['message' => 'User\'s property invalid'], Response::HTTP_NOT_FOUND);
         }
 
         $form = $this->createForm(UserType::class, $user);

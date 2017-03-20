@@ -1,0 +1,11 @@
+AppBundle\Entity\AuthToken:
+    exclusion_policy: none
+    properties:
+        value:
+            groups: ['users', 'auth_tokens']
+        createdAt:
+            groups: ['auth_tokens']
+        user:
+            groups: ['auth_tokens']
+
+        

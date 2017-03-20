@@ -1,0 +1,13 @@
+AppBundle\Entity\Comment:
+    exclusion_policy: none
+    properties:
+        id:
+            groups: ['users', 'posts', 'comments']
+        content:
+            groups: ['comments']
+        createdAt:
+            groups: ['comments']
+        user:
+            groups: ['comments']
+        posts:
+            groups: ['comments']

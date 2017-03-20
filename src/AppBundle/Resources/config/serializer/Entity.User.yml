@@ -1,0 +1,14 @@
+AppBundle\Entity\User:
+    exclusion_policy: none
+    properties:
+        id:
+            groups: ['users', 'posts', 'auth_tokens', 'comments']
+        firstname:
+            groups: ['users']
+        lastname:
+            groups: ['users']
+        email:
+            groups: ['users']
+        password:
+            groups: ['users']
+        

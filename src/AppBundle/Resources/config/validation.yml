@@ -43,3 +43,14 @@ AppBundle\Entity\Post:
             - Length:
                 min: 4
                 max: 510
+
+AppBundle\Entity\Comment:
+    constraints:
+        - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity: content
+    properties:
+        content:
+            - NotBlank: ~
+            - Type: string
+            - Length:
+                min: 4
+                max: 510
