@@ -10,12 +10,24 @@ use FOS\RestBundle\Controller\Annotations as Rest; // alias pour toutes les anno
 use AppBundle\Form\CredentialsType;
 use AppBundle\Entity\AuthToken;
 use AppBundle\Entity\Credentials;
+use Nelmio\ApiDocBundle\Annotation\ApiDoc;
+use FOS\RestBundle\Controller\Annotations\QueryParam;
 
 class AuthTokenController extends Controller
 {
     /**
      * @Rest\View(statusCode=Response::HTTP_CREATED)
      * @Rest\Post("/auth-tokens")
+     * 
+     * @ApiDoc(
+     *    description="Créé un token dans l'application",
+     *    input={"class"=CredentialsType::class, "name"=""},
+     *    statusCodes = {
+     *        201 = "ok",
+     *        400 = "Formulaire invalide"
+     *    }
+     * )
+     * 
      */
     public function postAuthTokensAction(Request $request)
     {

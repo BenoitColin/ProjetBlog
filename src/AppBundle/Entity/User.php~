@@ -6,11 +6,13 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
-* @ORM\Entity()
-* @ORM\Table(name="user",
-*      uniqueConstraints={@ORM\UniqueConstraint(name="user_email_unique",columns={"email"})}
-* )
-*/
+ * Identifiant unique de l'utilisateur
+ * 
+ * @ORM\Entity()
+ * @ORM\Table(name="user",
+ *      uniqueConstraints={@ORM\UniqueConstraint(name="user_email_unique",columns={"email"})}
+ * )
+ */
 class User implements UserInterface
 {
     /**
@@ -51,7 +53,13 @@ class User implements UserInterface
     protected $password;
     
     protected $plainPassword;
-
+    
+    /**
+     * @ORM\OneToMany(targetEntity="Post", mappedBy="user")
+     * @var Post[]
+     */
+    protected $posts;
+    
     /**
      * Get id
      *
@@ -189,4 +197,5 @@ class User implements UserInterface
     {
         $this->plainPassword = null;
     }
+    
 }

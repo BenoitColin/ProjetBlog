@@ -16,16 +16,16 @@ class UserController extends Controller
 {
     
     /**
-     * @ApiDoc(
-     *    description="Récupère la liste des utilisateurs de l'application",
-     *    output= { "class"=User::class, "collection"=true, "groups"={"user"} }
-     * )
-     * 
      * @Rest\View()
      * @Rest\Get("/users")
-     * @QueryParam(name="offset", requirements="\d+", default="", description="Index de début de la pagination")
-     * @QueryParam(name="limit", requirements="\d+", default="", description="Nombre d'éléments à afficher")
-     * @QueryParam(name="sort", requirements="(asc|desc)", nullable=true, description="Ordre de tri (basé sur le nom)")
+     *
+     * @ApiDoc(
+     *    description="Recupère les utilisateurs de l'application",
+     *    statusCodes = {
+     *        201 = "ok",
+     *        400 = "Formulaire invalide"
+     *    }
+     * )
      */
     public function getUsersAction()
     {
@@ -37,16 +37,16 @@ class UserController extends Controller
     }
     
     /**
-     * @ApiDoc(
-     *    description="Récupère un utilisateur de l'application",
-     *    output= { "class"=User::class, "collection"=true, "groups"={"user"} }
-     * )
-     * 
      * @Rest\View()
      * @Rest\Get("/users/{id}")
-     * @QueryParam(name="offset", requirements="\d+", default="", description="Index de début de la pagination")
-     * @QueryParam(name="limit", requirements="\d+", default="", description="Nombre d'éléments à afficher")
-     * @QueryParam(name="sort", requirements="(asc|desc)", nullable=true, description="Ordre de tri (basé sur le nom)")
+     * 
+     * @ApiDoc(
+     *    description="Recupère un utilisateur de l'application",
+     *    statusCodes = {
+     *        201 = "ok",
+     *        400 = "Formulaire invalide"
+     *    }
+     * )
      */
     public function getUserAction(Request $request)
     {
@@ -62,16 +62,18 @@ class UserController extends Controller
     }
     
     /**
-     * @ApiDoc(
-     *    description="Créé un utilisateur dans l'application",
-     *    input={"class"=UserType::class, "name"=""}
-     * )
-     *
      * @Rest\View(statusCode=Response::HTTP_CREATED)
      * @Rest\Post("/usersC")
-     * @QueryParam(name="offset", requirements="\d+", default="", description="Index de début de la pagination")
-     * @QueryParam(name="limit", requirements="\d+", default="", description="Nombre d'éléments à afficher")
-     * @QueryParam(name="sort", requirements="(asc|desc)", nullable=true, description="Ordre de tri (basé sur le nom)")
+     * 
+     * @ApiDoc(
+     *    description="Créé un utilisateur dans l'application",
+     *    input={"class"=UserType::class, "name"=""},
+     *    statusCodes = {
+     *        201 = "ok",
+     *        400 = "Formulaire invalide"
+     *    }
+     * )
+     * 
      */
     public function postUsersAction(Request $request)
     {
@@ -95,12 +97,16 @@ class UserController extends Controller
     }
     
     /**
-     * @ApiDoc(
-     *    description="Supprime un utilisateur dans l'application",
-     * )
-     *
      * @Rest\View(statusCode=Response::HTTP_NO_CONTENT)
      * @Rest\Delete("/users/{id}")
+     * 
+     * @ApiDoc(
+     *    description="Supprime un utilisateur dans l'application",
+     *    statusCodes = {
+     *        201 = "ok",
+     *        400 = "Formulaire invalide"
+     *    }
+     * )
      */
     public function removeUserAction(Request $request)
     {
@@ -108,20 +114,32 @@ class UserController extends Controller
         $user = $em->getRepository('AppBundle:User')
                     ->find($request->get('id'));
 
-        if ($user) {
-            $em->remove($user);
-            $em->flush();
+        if (!$user) {
+            return;
         }
+
+        foreach ($user->getPosts() as $post) {
+            $em->remove($post);
+        }
+        
+        $em->remove($user);
+        $em->flush();
+        
+        return \FOS\RestBundle\View\View::create(['message' => 'User deleted'], Response::HTTP_NOT_FOUND);
     }
     
     /**
-     * @ApiDoc(
-     *    description="Mise à jour compléte d'un utilisateur dans l'application",
-     *    input={"class"=UserType::class, "name"=""}
-     * )
-     *
      * @Rest\View()
      * @Rest\Put("/users/{id}")
+     * 
+     * @ApiDoc(
+     *    description="Modifie complétement un utilisateur dans l'application",
+     *    input={"class"=UserType::class, "name"=""},
+     *    statusCodes = {
+     *        201 = "ok",
+     *        400 = "Formulaire invalide"
+     *    }
+     * )
      */
     public function updateUserAction(Request $request)
     {
@@ -129,13 +147,17 @@ class UserController extends Controller
     }
     
     /**
-     * @ApiDoc(
-     *    description="Mise à jour partielle d'un utilisateur dans l'application",
-     *    input={"class"=UserType::class, "name"=""}
-     * )
-     *
      * @Rest\View()
      * @Rest\Patch("/users/{id}")
+     * 
+     * @ApiDoc(
+     *    description="Modifie partiellement un utilisateur dans l'application",
+     *    input={"class"=UserType::class, "name"=""},
+     *    statusCodes = {
+     *        201 = "ok",
+     *        400 = "Formulaire invalide"
+     *    }
+     * )
      */
     public function patchUserAction(Request $request)
     {

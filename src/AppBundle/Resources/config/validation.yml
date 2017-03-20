@@ -26,3 +26,20 @@ AppBundle\Entity\Credentials:
         password:
             - NotBlank: ~
             - Type: string
+
+AppBundle\Entity\Post:
+    constraints:
+        - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity: title
+    properties:
+        title:
+            - NotBlank: ~
+            - Type: string
+            - Length:
+                min: 4
+                max: 50
+        content:
+            - NotBlank: ~
+            - Type: string
+            - Length:
+                min: 4
+                max: 510
