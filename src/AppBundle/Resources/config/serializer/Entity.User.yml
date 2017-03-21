@@ -8,7 +8,7 @@ AppBundle\Entity\User:
         lastname:
             groups: ['users']
         email:
-            groups: ['users']
+            groups: ['users', 'posts', 'comments']
         password:
             groups: ['users']
         

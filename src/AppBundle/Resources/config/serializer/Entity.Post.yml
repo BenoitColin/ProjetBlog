@@ -4,10 +4,12 @@ AppBundle\Entity\Post:
         id:
             groups: ['users', 'posts', 'comments']
         title:
-            groups: ['posts']
+            groups: ['posts', 'comments']
         content:
             groups: ['posts']
         createdAt:
             groups: ['posts']
         user:
+            groups: ['posts']
+        email:
             groups: ['posts']

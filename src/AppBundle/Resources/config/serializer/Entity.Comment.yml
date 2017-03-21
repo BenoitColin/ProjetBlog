@@ -9,5 +9,9 @@ AppBundle\Entity\Comment:
             groups: ['comments']
         user:
             groups: ['comments']
+        email:
+            groups: ['comments']
         posts:
+            groups: ['comments']
+        title:
             groups: ['comments']
